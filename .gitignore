@@ -1,0 +1,6 @@
+# Ignore all folders containing the model
+finetuned_llama3/
+outputs/
+
+# Ignore all wandb files
+wandb/
