@@ -14,4 +14,4 @@ source /oscar/runtime/software/external/miniconda3/23.11.0/etc/profile.d/conda.s
 
 conda activate llm_finetune
 
-python run.py 
+python notes_icd.py 
