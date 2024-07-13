@@ -3,10 +3,10 @@
 #SBATCH --partition gpu # Partition (queue) name
 #SBATCH --gres=gpu:1 # Request 1 gpu
 #SBATCH --nodes=1 # Number of nodes
-#SBATCH --mem=48G
-#SBATCH -J finetune_llama3
-#SBATCH -o icd-20k-linear-5e-5-batch16.out
-#SBATCH -e icd-20k-linear-5e-5-batch16.out
+#SBATCH --mem=96G
+#SBATCH -J evaluation
+#SBATCH -o icd-20k-cyclic2-5e-5-batch16.out
+#SBATCH -e icd-20k-cyclic2-5e-5-batch16.err
 
 module load cuda
 module load miniconda3/23.11.0s
@@ -14,4 +14,4 @@ source /oscar/runtime/software/external/miniconda3/23.11.0/etc/profile.d/conda.s
 
 conda activate llm_finetune
 
-python notes_icd.py 
+python evaluation.py 

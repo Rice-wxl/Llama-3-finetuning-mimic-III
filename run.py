@@ -54,6 +54,8 @@ model = FastLanguageModel.get_peft_model(
 dataset_name = "wangrice/mimiciiinotes"
 dataset = load_dataset(dataset_name, split="train")
 
+## Apply_chat_template (tokenizer method)
+
 prompt_format = """
 <|begin_of_text|>
 <|start_header_id|>system<|end_header_id|>
