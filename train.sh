@@ -5,8 +5,8 @@
 #SBATCH --nodes=1 # Number of nodes
 #SBATCH --mem=48G
 #SBATCH -J finetune_llama3
-#SBATCH -o icd-20k-cyclic2-1e-4-batch16-run2.out
-#SBATCH -e icd-20k-cyclic2-1e-4-batch16-run2.out
+#SBATCH -o balanced_trial.out
+#SBATCH -e balanced_trial.out
 
 module load cuda
 module load miniconda3/23.11.0s

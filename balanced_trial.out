@@ -1,0 +1,36 @@
+## SLURM PROLOG ###############################################################
+##    Job ID : 3642579
+##  Job Name : finetune_llama3
+##  Nodelist : gpu2004
+##      CPUs : 
+##  Mem/Node : 49152 MB
+## Directory : /oscar/home/xwang259/Llama-3-finetuning-mimic-III
+##   Job Started : Tue Jul 16 03:43:56 PM EDT 2024
+###############################################################################
+Unsloth 2024.7 patched 32 layers with 32 QKV layers, 32 O layers and 32 MLP layers.
+🦥 Unsloth: Will patch your computer to enable 2x faster free finetuning.
+The token has not been saved to the git credentials helper. Pass `add_to_git_credential=True` in this function directly or `--add-to-git-credential` if using via `huggingface-cli` if you want to set the git credential as well.
+Token is valid (permission: read).
+Your token has been saved to /users/xwang259/.cache/huggingface/token
+Login successful
+==((====))==  Unsloth: Fast Llama patching release 2024.7
+   \\   /|    GPU: Quadro RTX 6000. Max memory: 23.645 GB. Platform = Linux.
+O^O/ \_/ \    Pytorch: 2.1.0+cu121. CUDA = 7.5. CUDA Toolkit = 12.1.
+\        /    Bfloat16 = FALSE. FA [Xformers = 0.0.22.post7. FA2 = False]
+ "-____-"     Free Apache license: http://github.com/unslothai/unsloth
+Number of rows that report yes: 5586
+Number of rows that report no: 16814
+Map (num_proc=4):   0%|          | 0/11172 [00:00<?, ? examples/s]Map (num_proc=4):   9%|▉         | 1000/11172 [00:27<04:37, 36.64 examples/s]Map (num_proc=4):  18%|█▊        | 2000/11172 [00:33<02:16, 67.03 examples/s]Map (num_proc=4):  27%|██▋       | 3000/11172 [00:33<01:07, 121.63 examples/s]Map (num_proc=4):  36%|███▌      | 4000/11172 [00:39<00:52, 135.42 examples/s]Map (num_proc=4):  45%|████▍     | 5000/11172 [00:54<01:00, 101.26 examples/s]Map (num_proc=4):  54%|█████▎    | 6000/11172 [00:56<00:38, 134.13 examples/s]Map (num_proc=4):  63%|██████▎   | 7000/11172 [01:02<00:28, 146.17 examples/s]Map (num_proc=4):  72%|███████▏  | 8000/11172 [01:02<00:15, 208.67 examples/s]Map (num_proc=4):  79%|███████▊  | 8793/11172 [01:15<00:18, 131.25 examples/s]Map (num_proc=4):  86%|████████▌ | 9586/11172 [01:15<00:09, 172.61 examples/s]Map (num_proc=4):  93%|█████████▎| 10379/11172 [01:18<00:03, 200.16 examples/s]Map (num_proc=4): 100%|██████████| 11172/11172 [01:20<00:00, 234.39 examples/s]Map (num_proc=4): 100%|██████████| 11172/11172 [01:20<00:00, 138.93 examples/s]
+==((====))==  Unsloth - 2x faster free finetuning | Num GPUs = 1
+   \\   /|    Num examples = 11,172 | Num Epochs = 1
+O^O/ \_/ \    Batch size per device = 2 | Gradient Accumulation steps = 4
+\        /    Total batch size = 8 | Total steps = 1,396
+ "-____-"     Number of trainable parameters = 41,943,040
+wandb: Currently logged in as: xilin_wang1 (rice-factory). Use `wandb login --relogin` to force relogin
+wandb: Tracking run with wandb version 0.17.4
+wandb: Run data is saved locally in /oscar/home/xwang259/Llama-3-finetuning-mimic-III/wandb/run-20240716_154649-4nzvid1y
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run balanced_trial
+wandb: ⭐️ View project at https://wandb.ai/rice-factory/%3Cft_icdcodes_balanced%3E
+wandb: 🚀 View run at https://wandb.ai/rice-factory/%3Cft_icdcodes_balanced%3E/runs/4nzvid1y
+  0%|          | 0/1396 [00:00<?, ?it/s]  0%|          | 1/1396 [00:05<2:00:52,  5.20s/it]                                                    0%|          | 1/1396 [00:05<2:00:52,  5.20s/it]  0%|          | 2/1396 [00:08<1:38:43,  4.25s/it]                                                    0%|          | 2/1396 [00:08<1:38:43,  4.25s/it]  0%|          | 3/1396 [00:12<1:31:29,  3.94s/it]                                                    0%|          | 3/1396 [00:12<1:31:29,  3.94s/it]  0%|          | 4/1396 [00:15<1:28:13,  3.80s/it]                                                    0%|          | 4/1396 [00:15<1:28:13,  3.80s/it]  0%|          | 5/1396 [00:19<1:26:25,  3.73s/it]                                                    0%|          | 5/1396 [00:19<1:26:25,  3.73s/it]  0%|          | 6/1396 [00:23<1:25:28,  3.69s/it]                                                    0%|          | 6/1396 [00:23<1:25:28,  3.69s/it]  1%|          | 7/1396 [00:26<1:25:01,  3.67s/it]                                                    1%|          | 7/1396 [00:26<1:25:01,  3.67s/it]  1%|          | 8/1396 [00:30<1:24:42,  3.66s/it]                                                    1%|          | 8/1396 [00:30<1:24:42,  3.66s/it]  1%|          | 9/1396 [00:34<1:24:27,  3.65s/it]                                                    1%|          | 9/1396 [00:34<1:24:27,  3.65s/it]
