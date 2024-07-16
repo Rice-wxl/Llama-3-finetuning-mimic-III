@@ -1,0 +1,30 @@
+## SLURM PROLOG ###############################################################
+##    Job ID : 3618344
+##  Job Name : evaluation
+##  Nodelist : gpu2010
+##      CPUs : 
+##  Mem/Node : 98304 MB
+## Directory : /oscar/home/xwang259/Llama-3-finetuning-mimic-III
+##   Job Started : Sun Jul 14 09:49:28 PM EDT 2024
+###############################################################################
+🦥 Unsloth: Will patch your computer to enable 2x faster free finetuning.
+The token has not been saved to the git credentials helper. Pass `add_to_git_credential=True` in this function directly or `--add-to-git-credential` if using via `huggingface-cli` if you want to set the git credential as well.
+Token is valid (permission: read).
+Your token has been saved to /users/xwang259/.cache/huggingface/token
+Login successful
+==((====))==  Unsloth: Fast Llama patching release 2024.7
+   \\   /|    GPU: Quadro RTX 6000. Max memory: 23.645 GB. Platform = Linux.
+O^O/ \_/ \    Pytorch: 2.1.0+cu121. CUDA = 7.5. CUDA Toolkit = 12.1.
+\        /    Bfloat16 = FALSE. FA [Xformers = 0.0.22.post7. FA2 = False]
+ "-____-"     Free Apache license: http://github.com/unslothai/unsloth
+Skipping example: Text length (11650) exceeds maximum (8192)
+Skipping example: Text length (8347) exceeds maximum (8192)
+Skipping example: Text length (10846) exceeds maximum (8192)
+Skipping example: Text length (13805) exceeds maximum (8192)
+Skipping example: Text length (12239) exceeds maximum (8192)
+Number of positives: 136
+Number of negatives: 418
+Accuracy: 73.41%
+number of positive predictions: 41
+precision (TP/TP+FP): 0.36585365853658536
+recall (TP/TP+FN): 0.11029411764705882

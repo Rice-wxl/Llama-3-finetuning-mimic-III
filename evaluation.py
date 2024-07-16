@@ -11,7 +11,7 @@ login(token="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")
 
 ## Get the finetuned model
 model, tokenizer = FastLanguageModel.from_pretrained(
-    model_name = "wangrice/ft_icd_20k_hyperparameter", # YOUR MODEL YOU USED FOR TRAINING
+    model_name = "wangrice/ft_icd_20k_hyperparameter_2", # YOUR MODEL YOU USED FOR TRAINING
     max_seq_length = 512,
     dtype = None,
     load_in_4bit = True,
@@ -59,9 +59,6 @@ def get_label(example):
 
 labels = [get_label(example) for example in dataset]
 
-print(f"Number of positives: {sum(labels)}")
-print(f"Number of negatives: {len(labels) - sum(labels)}")
-
 ## Get all the predictions
 max_length = 8192
 
@@ -84,11 +81,17 @@ def get_prediction(model, tokenizer, example, delimiter="<|start_header_id|>assi
 
 predictions = [get_prediction(model, tokenizer, example) for example in tqdm(dataset)]
 
+positives = sum(labels)
+negatives = len(labels) - sum(labels)
+
+print(f"Number of positives: {positives}")
+print(f"Number of negatives: {negatives}")
 
 ## Calculate accuracy
 correct_predictions = 0
 total_predictions = 0
 positive_prediction = 0
+true_positives = 0
 
 for pred, lab in zip(predictions, labels):
     if pred == -1:
@@ -100,6 +103,8 @@ for pred, lab in zip(predictions, labels):
     
     if pred == 1:
        positive_prediction += 1
+       if lab == 1:
+          true_positives += 1
 
 
 if total_predictions > 0:
@@ -109,3 +114,5 @@ else:
 
 print(f'Accuracy: {accuracy * 100:.2f}%')
 print(f"number of positive predictions: {positive_prediction}")
+print(f"precision (TP/TP+FP): {true_positives / positive_prediction}")
+print(f"recall (TP/TP+FN): {true_positives / positives}")
