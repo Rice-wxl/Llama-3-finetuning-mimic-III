@@ -11,7 +11,7 @@ login(token="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")
 
 ## Get the finetuned model
 model, tokenizer = FastLanguageModel.from_pretrained(
-    model_name = "wangrice/ft_icd_20k_hyperparameter_2", # YOUR MODEL YOU USED FOR TRAINING
+    model_name = "wangrice/ft_icd_20k_balanced", # YOUR MODEL YOU USED FOR TRAINING
     max_seq_length = 512,
     dtype = None,
     load_in_4bit = True,
@@ -112,7 +112,11 @@ if total_predictions > 0:
 else:
     accuracy = 0.0  # Handle case where there are no valid predictions
 
+precision = true_positives / positive_prediction
+recall = true_positives / positives
+
 print(f'Accuracy: {accuracy * 100:.2f}%')
 print(f"number of positive predictions: {positive_prediction}")
-print(f"precision (TP/TP+FP): {true_positives / positive_prediction}")
-print(f"recall (TP/TP+FN): {true_positives / positives}")
+print(f"precision (TP/TP+FP): {precision}")
+print(f"recall (TP/TP+FN): {recall}")
+print(f"F1 score: {2/(precision**-1 + recall**-1)}")

@@ -5,8 +5,7 @@
 #SBATCH --nodes=1 # Number of nodes
 #SBATCH --mem=96G
 #SBATCH -J evaluation
-#SBATCH -o evaluation_icd_20k_cyclic2_1e-4_16_2nd.out
-#SBATCH -e evaluation_icd_20k_cyclic2_1e-4_16_2nd.err
+#SBATCH -o evaluation_balanced_trial.out
 
 module load cuda
 module load miniconda3/23.11.0s

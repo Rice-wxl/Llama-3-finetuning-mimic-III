@@ -122,7 +122,6 @@ dataset = dataset.map(formatting_prompts_func, batched = True,)
 # train_dataset = train_dataset.map(formatting_prompts_func, batched = True,)
 # test_dataset = test_dataset.map(test_formatting_func, batched = True,)
 
-
 # Separate positive and negative samples
 positive_samples = []
 negative_samples = []
@@ -137,13 +136,11 @@ for sample in dataset:
 
 # Determine the number of positive samples
 num_positive_samples = len(positive_samples)
-num_negative_samples = len(negative_samples)
-print(f"Number of rows that report yes: {num_positive_samples}")
-print(f"Number of rows that report no: {num_negative_samples}")
 
 # Randomly sample the same number of negative samples
 sampled_negative_samples = random.sample(negative_samples, num_positive_samples)
 balanced_samples = positive_samples + sampled_negative_samples
+print(f"Number of rows that report yes: {num_positive_samples}")
 
 # Convert the list of balanced samples back to a Dataset
 balanced_dataset = Dataset.from_dict({key: [sample[key] for sample in balanced_samples] for key in balanced_samples[0]})
@@ -151,33 +148,33 @@ balanced_dataset = Dataset.from_dict({key: [sample[key] for sample in balanced_s
 # Setting training parameters
 training_arguments = TrainingArguments(
     output_dir="outputs",
-    num_train_epochs=1,
+    num_train_epochs=3,
     per_device_train_batch_size=2,
     gradient_accumulation_steps=4,
-    optim="adamw_8bit",
+    # optim="adamw_8bit",
     logging_steps=1,
     learning_rate=1e-4,
     weight_decay=0.01,
     fp16 = not is_bfloat16_supported(),
     bf16 = is_bfloat16_supported(),
     warmup_steps = 5,
-    lr_scheduler_type="linear",
+    # lr_scheduler_type="linear",
     save_strategy="no",
-    run_name="balanced_trial"
+    run_name="balanced_cyclic_1e-4_8"
 )
 
 # # Customize optimizer and scheduler
-# trainable_params = [param for name, param in model.named_parameters() if param.requires_grad]
-# optimizer = AdamW(trainable_params, lr=1e-4, weight_decay=0.01)
+trainable_params = [param for name, param in model.named_parameters() if param.requires_grad]
+optimizer = AdamW(trainable_params, lr=1e-4, weight_decay=0.01)
 
-# scheduler = CyclicLR(
-#     optimizer, 
-#     base_lr=5e-6,                      # minimum learning rate
-#     max_lr=1e-4,                       # maximum learning rate
-#     step_size_up=500,                 # number of training steps in the increasing half of a cycle
-#     mode='triangular2',                 # mode of the cycle ('triangular', 'triangular2', 'exp_range')
-#     cycle_momentum=False               # whether to cycle the momentum (should be False for AdamW)
-# )
+scheduler = CyclicLR(
+    optimizer, 
+    base_lr=5e-6,                      # minimum learning rate
+    max_lr=1e-4,                       # maximum learning rate
+    step_size_up=500,                 # number of training steps in the increasing half of a cycle
+    mode='triangular',                 # mode of the cycle ('triangular', 'triangular2', 'exp_range')
+    cycle_momentum=False               # whether to cycle the momentum (should be False for AdamW)
+)
 
 trainer = SFTTrainer(
     model = model,
@@ -189,7 +186,7 @@ trainer = SFTTrainer(
     dataset_num_proc = 4,
     packing = False, # Can make training 5x faster for short sequences.
     args = training_arguments,
-    # optimizers=(optimizer, scheduler)
+    optimizers=(optimizer, scheduler)
 )
 
 trainer_stats = trainer.train()
@@ -201,4 +198,4 @@ print("\n ######## \nAfter training\n")
 ## Save and push to Hub
 model.save_pretrained("finetuned_llama3")
 model.save_pretrained_merged("outputs", tokenizer, save_method = "merged_16bit",)
-model.push_to_hub("wangrice/ft_icd_20k_balanced", tokenizer, save_method = "lora", token = "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")
+model.push_to_hub("wangrice/ft_icd_20k_balanced_backup", tokenizer, save_method = "lora", token = "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")

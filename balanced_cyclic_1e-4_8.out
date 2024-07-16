@@ -1,0 +1,9 @@
+## SLURM PROLOG ###############################################################
+##    Job ID : 3644332
+##  Job Name : finetune_llama3
+##  Nodelist : gpu2115
+##      CPUs : 
+##  Mem/Node : 49152 MB
+## Directory : /oscar/home/xwang259/Llama-3-finetuning-mimic-III
+##   Job Started : Tue Jul 16 05:35:57 PM EDT 2024
+###############################################################################
