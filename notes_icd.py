@@ -56,8 +56,6 @@ model = FastLanguageModel.get_peft_model(
 file_paths = ["Notes_ICD_0-5k.json", "Notes_ICD_5-10k.json", "Notes_ICD_15-20k.json", "Notes_ICD_25-30k.json"]
 dataset_name = "wangrice/MIMIC_III_NotesICD_20k"
 dataset = load_dataset(dataset_name, split="train", data_files=file_paths)
-dataset_name = "wangrice/MIMIC-III-Notes-ICD-IDLess5000"
-
 # split_dataset = dataset.train_test_split(test_size=0.2)
 # train_dataset = split_dataset['train']
 # test_dataset = split_dataset['test']
@@ -65,7 +63,7 @@ dataset_name = "wangrice/MIMIC-III-Notes-ICD-IDLess5000"
 ## Use apply_chat_template function
 ## Add to the user prompt what it is suppose to do
 ## eg. here's a patient discharge note... Provide a one word answer to ...
-prompt_format = """""
+prompt_format = """
 <|start_header_id|>system<|end_header_id|>
 You are a medical AI assistant for diagnose whether the patient has diabetes mellitus given their discharge notes. You will provide a single yes/no as the answer.<|eot_id|>
 <|start_header_id|>user<|end_header_id|>
@@ -105,22 +103,22 @@ def formatting_prompts_func(examples):
 pass
 
 
-test_prompt = """
-<|start_header_id|>system<|end_header_id|>
-You are a medical AI assistant for diagnose whether the patient has diabetes mellitus given their discharge notes. You will provide a single yes/no as the answer.<|eot_id|>
-<|start_header_id|>user<|end_header_id|>
-{}<|eot_id|>
-<|start_header_id|>assistant<|end_header_id|>
-"""
+# test_prompt = """
+# <|start_header_id|>system<|end_header_id|>
+# You are a medical AI assistant for diagnose whether the patient has diabetes mellitus given their discharge notes. You will provide a single yes/no as the answer.<|eot_id|>
+# <|start_header_id|>user<|end_header_id|>
+# {}<|eot_id|>
+# <|start_header_id|>assistant<|end_header_id|>
+# """
 
-def test_formatting_func(examples):
-    notes  =  examples["TEXT"]
-    texts = []
-    for note in zip(notes):
-      text = test_prompt.format(note)
-      texts.append(text)
-    return { "training_text" : texts, }
-pass
+# def test_formatting_func(examples):
+#     notes  =  examples["TEXT"]
+#     texts = []
+#     for note in zip(notes):
+#       text = test_prompt.format(note)
+#       texts.append(text)
+#     return { "training_text" : texts, }
+# pass
 
 # EOS_TOKEN = tokenizer.eos_token # Must add EOS_TOKEN
 
@@ -160,14 +158,14 @@ training_arguments = TrainingArguments(
     gradient_accumulation_steps=8,
     optim="adamw_8bit",
     logging_steps=1,
-    learning_rate=1e-4,
+    learning_rate=2e-4,
     weight_decay=0.01,
     fp16 = not is_bfloat16_supported(),
     bf16 = is_bfloat16_supported(),
-    warmup_steps = 5,
-    lr_scheduler_type="linear",
+    warmup_steps = 50,
+    lr_scheduler_type="cosine",
     save_strategy="no",
-    run_name="improved_10epo_linear_1e-4_64"
+    run_name="improved_10epo_cos_2e-4_64"
 )
 
 # Customize optimizer and scheduler

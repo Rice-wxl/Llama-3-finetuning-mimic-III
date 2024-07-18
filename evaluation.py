@@ -11,7 +11,7 @@ login(token="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")
 
 ## Get the finetuned model
 model, tokenizer = FastLanguageModel.from_pretrained(
-    model_name = "wangrice/ft_icd_20k_balanced", # YOUR MODEL YOU USED FOR TRAINING
+    model_name = "wangrice/ft_icd_20k_balanced_backup", # YOUR MODEL YOU USED FOR TRAINING
     max_seq_length = 512,
     dtype = None,
     load_in_4bit = True,
@@ -27,7 +27,11 @@ test_prompt = """
 <|start_header_id|>system<|end_header_id|>
 You are a medical AI assistant for diagnose whether the patient has diabetes mellitus given their discharge notes. You will provide a single yes/no as the answer.<|eot_id|>
 <|start_header_id|>user<|end_header_id|>
-{}<|eot_id|>
+Here is a patient's discharge summary report from a hospital encounter. Provide a one word yes or no answer to the following question: does the patient have diabetes mellitus?
+*** Discharge summary report starts ***
+{}
+*** Discharge summary report ends ***
+<|eot_id|>
 <|start_header_id|>assistant<|end_header_id|>
 """
 

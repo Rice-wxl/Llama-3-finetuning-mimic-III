@@ -1,6 +1,7 @@
 # Ignore all folders containing the model
 finetuned_llama3/
 outputs/
+_unsloth_temporary_saved_buffers
 
 # Ignore all wandb files
 wandb/
