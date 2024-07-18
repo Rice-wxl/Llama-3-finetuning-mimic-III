@@ -40,7 +40,7 @@ model = FastLanguageModel.get_peft_model(
     model,
     r = 16, # Choose any number > 0 ! Suggested 8, 16, 32, 64, 128
     target_modules = ["q_proj", "k_proj", "v_proj", "o_proj",
-                      "gate_proj", "up_proj", "down_proj",],
+                      "gate_proj", "up_proj", "down_proj","lm_head"],
     lora_alpha = 16,
     lora_dropout = 0, # Supports any, but = 0 is optimized
     bias = "none",    # Supports any, but = "none" is optimized
@@ -62,11 +62,18 @@ dataset_name = "wangrice/MIMIC-III-Notes-ICD-IDLess5000"
 # train_dataset = split_dataset['train']
 # test_dataset = split_dataset['test']
 
-prompt_format = """
+## Use apply_chat_template function
+## Add to the user prompt what it is suppose to do
+## eg. here's a patient discharge note... Provide a one word answer to ...
+prompt_format = """""
 <|start_header_id|>system<|end_header_id|>
 You are a medical AI assistant for diagnose whether the patient has diabetes mellitus given their discharge notes. You will provide a single yes/no as the answer.<|eot_id|>
 <|start_header_id|>user<|end_header_id|>
-{}<|eot_id|>
+Here is a patient's discharge summary report from a hospital encounter. Provide a one word yes or no answer to the following question: does the patient have diabetes mellitus?
+*** Discharge summary report starts ***
+{}
+*** Discharge summary report ends ***
+<|eot_id|>
 <|start_header_id|>assistant<|end_header_id|>
 {}<|eot_id|>
 <|end_of_text|>
@@ -148,33 +155,33 @@ balanced_dataset = Dataset.from_dict({key: [sample[key] for sample in balanced_s
 # Setting training parameters
 training_arguments = TrainingArguments(
     output_dir="outputs",
-    num_train_epochs=3,
-    per_device_train_batch_size=2,
-    gradient_accumulation_steps=4,
-    # optim="adamw_8bit",
+    num_train_epochs=10,
+    per_device_train_batch_size=8,
+    gradient_accumulation_steps=8,
+    optim="adamw_8bit",
     logging_steps=1,
     learning_rate=1e-4,
     weight_decay=0.01,
     fp16 = not is_bfloat16_supported(),
     bf16 = is_bfloat16_supported(),
     warmup_steps = 5,
-    # lr_scheduler_type="linear",
+    lr_scheduler_type="linear",
     save_strategy="no",
-    run_name="balanced_cyclic_1e-4_8"
+    run_name="improved_10epo_linear_1e-4_64"
 )
 
-# # Customize optimizer and scheduler
-trainable_params = [param for name, param in model.named_parameters() if param.requires_grad]
-optimizer = AdamW(trainable_params, lr=1e-4, weight_decay=0.01)
+# Customize optimizer and scheduler
+# trainable_params = [param for name, param in model.named_parameters() if param.requires_grad]
+# optimizer = AdamW(trainable_params, lr=1e-4, weight_decay=0.01)
 
-scheduler = CyclicLR(
-    optimizer, 
-    base_lr=5e-6,                      # minimum learning rate
-    max_lr=1e-4,                       # maximum learning rate
-    step_size_up=500,                 # number of training steps in the increasing half of a cycle
-    mode='triangular',                 # mode of the cycle ('triangular', 'triangular2', 'exp_range')
-    cycle_momentum=False               # whether to cycle the momentum (should be False for AdamW)
-)
+# scheduler = CyclicLR(
+#     optimizer, 
+#     base_lr=5e-6,                      # minimum learning rate
+#     max_lr=1e-4,                       # maximum learning rate
+#     step_size_up=500,                 # number of training steps in the increasing half of a cycle
+#     mode='triangular',                 # mode of the cycle ('triangular', 'triangular2', 'exp_range')
+#     cycle_momentum=False               # whether to cycle the momentum (should be False for AdamW)
+# )
 
 trainer = SFTTrainer(
     model = model,
@@ -186,7 +193,7 @@ trainer = SFTTrainer(
     dataset_num_proc = 4,
     packing = False, # Can make training 5x faster for short sequences.
     args = training_arguments,
-    optimizers=(optimizer, scheduler)
+    # optimizers=(optimizer, scheduler)
 )
 
 trainer_stats = trainer.train()
@@ -198,4 +205,4 @@ print("\n ######## \nAfter training\n")
 ## Save and push to Hub
 model.save_pretrained("finetuned_llama3")
 model.save_pretrained_merged("outputs", tokenizer, save_method = "merged_16bit",)
-model.push_to_hub("wangrice/ft_icd_20k_balanced_backup", tokenizer, save_method = "lora", token = "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")
+model.push_to_hub("wangrice/ft_icd_20k_balanced", tokenizer, save_method = "lora", token = "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")

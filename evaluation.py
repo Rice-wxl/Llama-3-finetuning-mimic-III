@@ -90,7 +90,9 @@ print(f"Number of negatives: {negatives}")
 ## Calculate accuracy
 correct_predictions = 0
 total_predictions = 0
+
 positive_prediction = 0
+positive_label = 0
 true_positives = 0
 
 for pred, lab in zip(predictions, labels):
@@ -103,8 +105,12 @@ for pred, lab in zip(predictions, labels):
     
     if pred == 1:
        positive_prediction += 1
-       if lab == 1:
-          true_positives += 1
+    
+    if lab == 1:
+       positive_label += 1
+    
+    if pred == 1 & lab == 1:
+       true_positives += 1
 
 
 if total_predictions > 0:
@@ -113,7 +119,7 @@ else:
     accuracy = 0.0  # Handle case where there are no valid predictions
 
 precision = true_positives / positive_prediction
-recall = true_positives / positives
+recall = true_positives / positive_label
 
 print(f'Accuracy: {accuracy * 100:.2f}%')
 print(f"number of positive predictions: {positive_prediction}")
