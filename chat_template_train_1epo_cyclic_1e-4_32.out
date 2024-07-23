@@ -1,0 +1,10 @@
+## SLURM PROLOG ###############################################################
+##    Job ID : 3771193
+##  Job Name : finetune_llama3
+##  Nodelist : gpu2107
+##      CPUs : 
+##  Mem/Node : 49152 MB
+## Directory : /oscar/home/xwang259/Llama-3-finetuning-mimic-III
+##   Job Started : Tue Jul 23 07:46:52 PM EDT 2024
+###############################################################################
+slurmstepd: error: *** JOB 3771193 ON gpu2107 CANCELLED AT 2024-07-23T19:46:55 ***

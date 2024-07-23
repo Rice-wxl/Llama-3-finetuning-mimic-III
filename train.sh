@@ -5,8 +5,8 @@
 #SBATCH --nodes=1 # Number of nodes
 #SBATCH --mem=48G
 #SBATCH -J finetune_llama3
-#SBATCH -o improved_10epo_cos_2e-4_64.out
-#SBATCH -e improved_10epo_cos_2e-4_64.out
+#SBATCH -o chat_template_train_1epo_cyclic_1e-4_32.out
+#SBATCH -e chat_template_train_1epo_cyclic_1e-4_32.out
 
 module load cuda
 module load miniconda3/23.11.0s

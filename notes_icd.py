@@ -4,21 +4,22 @@
 import torch
 from huggingface_hub import login
 from unsloth import FastLanguageModel
-from datasets import load_dataset, Dataset
+from datasets import load_dataset, Dataset, DatasetDict
 from trl import SFTTrainer
-from transformers import TrainingArguments
+from transformers import TrainingArguments, EarlyStoppingCallback
 from unsloth import is_bfloat16_supported
 from torch.optim import AdamW
 from torch.optim.lr_scheduler import CyclicLR
-import random
+from prepare_data import formatting_func, balance_data
 
 import os
-os.environ["WANDB_PROJECT"] = "<ft_icdcodes_balanced>"  # name your W&B project
+os.environ["WANDB_PROJECT"] = "<ft_icdcodes_experiments>"  # name your W&B project
 os.environ["WANDB_LOG_MODEL"] = "end"
 
 
 ## Login to Huggingface
 login(token="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")
+
 
 ## Parameter definiton
 max_seq_length = 512 # Choose any! We auto support RoPE Scaling internally!
@@ -35,12 +36,11 @@ model, tokenizer = FastLanguageModel.from_pretrained(
     # token = "hf_...", # use one if using gated models like meta-llama/Llama-2-7b-hf
 )
 
-
 model = FastLanguageModel.get_peft_model(
     model,
     r = 16, # Choose any number > 0 ! Suggested 8, 16, 32, 64, 128
     target_modules = ["q_proj", "k_proj", "v_proj", "o_proj",
-                      "gate_proj", "up_proj", "down_proj","lm_head"],
+                      "gate_proj", "up_proj", "down_proj"],
     lora_alpha = 16,
     lora_dropout = 0, # Supports any, but = 0 is optimized
     bias = "none",    # Supports any, but = "none" is optimized
@@ -53,145 +53,69 @@ model = FastLanguageModel.get_peft_model(
 
 
 ## Preparing the dataset
-file_paths = ["Notes_ICD_0-5k.json", "Notes_ICD_5-10k.json", "Notes_ICD_15-20k.json", "Notes_ICD_25-30k.json"]
-dataset_name = "wangrice/MIMIC_III_NotesICD_20k"
+file_paths = ["Notes_ICD_0-5k.json", "Notes_ICD_5-10k.json", "Notes_ICD_15-20k.json", "Notes_ICD_25-30k.json", "Notes_ICD_30-50k.json", "Notes_ICD_50-70k.json", "Notes_ICD_70-100k.json"]
+dataset_name = "wangrice/MIMIC_III_NotesICD_100k"
 dataset = load_dataset(dataset_name, split="train", data_files=file_paths)
-# split_dataset = dataset.train_test_split(test_size=0.2)
-# train_dataset = split_dataset['train']
-# test_dataset = split_dataset['test']
+dataset = dataset.map(formatting_func, batched=True, fn_kwargs={'tokenizer': tokenizer})
+print(dataset[0:5]["training_text"])
+balanced_dataset = balance_data(dataset)
 
-## Use apply_chat_template function
-## Add to the user prompt what it is suppose to do
-## eg. here's a patient discharge note... Provide a one word answer to ...
-prompt_format = """
-<|start_header_id|>system<|end_header_id|>
-You are a medical AI assistant for diagnose whether the patient has diabetes mellitus given their discharge notes. You will provide a single yes/no as the answer.<|eot_id|>
-<|start_header_id|>user<|end_header_id|>
-Here is a patient's discharge summary report from a hospital encounter. Provide a one word yes or no answer to the following question: does the patient have diabetes mellitus?
-*** Discharge summary report starts ***
-{}
-*** Discharge summary report ends ***
-<|eot_id|>
-<|start_header_id|>assistant<|end_header_id|>
-{}<|eot_id|>
-<|end_of_text|>
-"""
-
-def formatting_prompts_func(examples):
-    notes  =  examples["TEXT"]
-    codes = examples["CODES"]
-    texts = []
-    for note, code in zip(notes, codes):
-      answer = None
-      for each in code.split(','):
-        try:
-          value = int(each)
-          if value  >= 25000 and value <= 25099:
-            answer = 1
-            break
-          else:
-            continue
-        except ValueError:
-          continue
-      if answer == 1:
-        answer = "YES"   
-      else:
-        answer = "NO"
-      text = prompt_format.format(note, answer)
-      texts.append(text)
-    return { "training_text" : texts, }
-pass
+# Split the dataset
+split_dataset = balanced_dataset.train_test_split(test_size=0.1)
+# Print the size of each split
+print(f"Train size: {len(split_dataset['train'])}")
+print(f"Test size: {len(split_dataset['test'])}")
 
 
-# test_prompt = """
-# <|start_header_id|>system<|end_header_id|>
-# You are a medical AI assistant for diagnose whether the patient has diabetes mellitus given their discharge notes. You will provide a single yes/no as the answer.<|eot_id|>
-# <|start_header_id|>user<|end_header_id|>
-# {}<|eot_id|>
-# <|start_header_id|>assistant<|end_header_id|>
-# """
-
-# def test_formatting_func(examples):
-#     notes  =  examples["TEXT"]
-#     texts = []
-#     for note in zip(notes):
-#       text = test_prompt.format(note)
-#       texts.append(text)
-#     return { "training_text" : texts, }
-# pass
-
-# EOS_TOKEN = tokenizer.eos_token # Must add EOS_TOKEN
-
-dataset = dataset.map(formatting_prompts_func, batched = True,)
-
-# train_dataset = train_dataset.map(formatting_prompts_func, batched = True,)
-# test_dataset = test_dataset.map(test_formatting_func, batched = True,)
-
-# Separate positive and negative samples
-positive_samples = []
-negative_samples = []
-
-delimiter="<|start_header_id|>assistant<|end_header_id|>"
-for sample in dataset:
-  response = sample["training_text"].split(delimiter)[-1].strip()
-  if "yes" in response.lower():
-    positive_samples.append(sample)
-  else:
-    negative_samples.append(sample)
-
-# Determine the number of positive samples
-num_positive_samples = len(positive_samples)
-
-# Randomly sample the same number of negative samples
-sampled_negative_samples = random.sample(negative_samples, num_positive_samples)
-balanced_samples = positive_samples + sampled_negative_samples
-print(f"Number of rows that report yes: {num_positive_samples}")
-
-# Convert the list of balanced samples back to a Dataset
-balanced_dataset = Dataset.from_dict({key: [sample[key] for sample in balanced_samples] for key in balanced_samples[0]})
 
 # Setting training parameters
 training_arguments = TrainingArguments(
     output_dir="outputs",
-    num_train_epochs=10,
-    per_device_train_batch_size=8,
+    num_train_epochs=1,
+    per_device_train_batch_size=4,
     gradient_accumulation_steps=8,
-    optim="adamw_8bit",
+    # optim="adamw_8bit",
     logging_steps=1,
-    learning_rate=2e-4,
+    learning_rate=1e-4,
     weight_decay=0.01,
     fp16 = not is_bfloat16_supported(),
     bf16 = is_bfloat16_supported(),
-    warmup_steps = 50,
-    lr_scheduler_type="cosine",
-    save_strategy="no",
-    run_name="improved_10epo_cos_2e-4_64"
+    # warmup_steps = 50,
+    # lr_scheduler_type="cosine",
+    save_strategy="epoch",
+    eval_strategy='epoch',  # Evaluate at the end of each epoch
+    run_name="chat_template_train_1epo_cyclic_1e-4_32", 
+    load_best_model_at_end=True  # Load the best model at the end of training
 )
 
 # Customize optimizer and scheduler
-# trainable_params = [param for name, param in model.named_parameters() if param.requires_grad]
-# optimizer = AdamW(trainable_params, lr=1e-4, weight_decay=0.01)
+trainable_params = [param for name, param in model.named_parameters() if param.requires_grad]
+optimizer = AdamW(trainable_params, lr=1e-4, weight_decay=0.01)
 
-# scheduler = CyclicLR(
-#     optimizer, 
-#     base_lr=5e-6,                      # minimum learning rate
-#     max_lr=1e-4,                       # maximum learning rate
-#     step_size_up=500,                 # number of training steps in the increasing half of a cycle
-#     mode='triangular',                 # mode of the cycle ('triangular', 'triangular2', 'exp_range')
-#     cycle_momentum=False               # whether to cycle the momentum (should be False for AdamW)
-# )
+scheduler = CyclicLR(
+    optimizer, 
+    base_lr=1e-5,                      # minimum learning rate
+    max_lr=1e-4,                       # maximum learning rate
+    step_size_up=300,                 # number of training steps in the increasing half of a cycle
+    mode='triangular',                 # mode of the cycle ('triangular', 'triangular2', 'exp_range')
+    cycle_momentum=False               # whether to cycle the momentum (should be False for AdamW)
+)
+
+early_stopping_callback = EarlyStoppingCallback(early_stopping_patience=3)
 
 trainer = SFTTrainer(
     model = model,
     tokenizer = tokenizer,
-    train_dataset=balanced_dataset,
-    # eval_dataset=test_dataset,
+    train_dataset=split_dataset["train"],
+    eval_dataset=split_dataset["test"],
     dataset_text_field = "training_text",
     max_seq_length = max_seq_length,
     dataset_num_proc = 4,
     packing = False, # Can make training 5x faster for short sequences.
     args = training_arguments,
-    # optimizers=(optimizer, scheduler)
+    optimizers=(optimizer, scheduler),
+    callbacks=[early_stopping_callback],
+
 )
 
 trainer_stats = trainer.train()
@@ -203,4 +127,4 @@ print("\n ######## \nAfter training\n")
 ## Save and push to Hub
 model.save_pretrained("finetuned_llama3")
 model.save_pretrained_merged("outputs", tokenizer, save_method = "merged_16bit",)
-model.push_to_hub("wangrice/ft_icd_20k_balanced", tokenizer, save_method = "lora", token = "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")
+model.push_to_hub("wangrice/ft_llama_chat_template", tokenizer, save_method = "lora", token = "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")

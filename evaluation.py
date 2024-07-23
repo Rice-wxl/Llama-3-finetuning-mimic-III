@@ -9,13 +9,18 @@ from torch.utils.data import DataLoader
 ## Login
 login(token="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")
 
-## Get the finetuned model
-model, tokenizer = FastLanguageModel.from_pretrained(
-    model_name = "wangrice/ft_icd_20k_balanced_backup", # YOUR MODEL YOU USED FOR TRAINING
-    max_seq_length = 512,
-    dtype = None,
-    load_in_4bit = True,
-)
+# ## Get the finetuned model
+# model, tokenizer = FastLanguageModel.from_pretrained(
+#     model_name = "wangrice/ft_icd_20k_fewer_2nd", # YOUR MODEL YOU USED FOR TRAINING
+#     max_seq_length = 512,
+#     dtype = None,
+#     load_in_4bit = True,
+# )
+# FastLanguageModel.for_inference(model) # Enable native 2x faster inference
+
+
+local_path = "/users/xwang259/Llama-3-finetuning-mimic-III/outputs/checkpoint-2584"
+model, tokenizer = FastLanguageModel.from_pretrained(local_path)
 FastLanguageModel.for_inference(model) # Enable native 2x faster inference
 
 
@@ -30,10 +35,10 @@ You are a medical AI assistant for diagnose whether the patient has diabetes mel
 Here is a patient's discharge summary report from a hospital encounter. Provide a one word yes or no answer to the following question: does the patient have diabetes mellitus?
 *** Discharge summary report starts ***
 {}
-*** Discharge summary report ends ***
-<|eot_id|>
+*** Discharge summary report ends ***<|eot_id|>
 <|start_header_id|>assistant<|end_header_id|>
 """
+
 
 def format_batch(batch):
     inputs = batch["TEXT"]
@@ -81,7 +86,12 @@ def get_prediction(model, tokenizer, example, delimiter="<|start_header_id|>assi
     else:
         response = decoded_output.strip()
 
-    return 1 if "yes" in response.lower() else 0
+    if "yes" in response.lower():
+      return 1
+    elif "no" in response.lower():
+      return 0
+    else:
+      return -2
 
 predictions = [get_prediction(model, tokenizer, example) for example in tqdm(dataset)]
 
@@ -103,6 +113,10 @@ for pred, lab in zip(predictions, labels):
     if pred == -1:
         continue  # Skip predictions where input length exceeded max_length
     
+    if pred == -2:
+      print("no yes/no answer in the response, skips")
+      continue
+
     total_predictions += 1
     if pred == lab:
         correct_predictions += 1
