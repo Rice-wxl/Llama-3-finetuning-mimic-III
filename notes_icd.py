@@ -13,7 +13,7 @@ from torch.optim.lr_scheduler import CyclicLR
 from prepare_data import formatting_func, balance_data
 
 import os
-os.environ["WANDB_PROJECT"] = "<ft_icdcodes_experiments>"  # name your W&B project
+os.environ["WANDB_PROJECT"] = "<ft_icdcodes_sepsis>"  # name your W&B project
 os.environ["WANDB_LOG_MODEL"] = "end"
 
 
@@ -40,9 +40,9 @@ model = FastLanguageModel.get_peft_model(
     model,
     r = 16, # Choose any number > 0 ! Suggested 8, 16, 32, 64, 128
     target_modules = ["q_proj", "k_proj", "v_proj", "o_proj",
-                      "gate_proj", "up_proj", "down_proj"],
+                      "gate_proj", "up_proj", "down_proj", "lm_head"],
     lora_alpha = 16,
-    lora_dropout = 0, # Supports any, but = 0 is optimized
+    lora_dropout = 0.2, # Supports any, but = 0 is optimized
     bias = "none",    # Supports any, but = "none" is optimized
     # [NEW] "unsloth" uses 30% less VRAM, fits 2x larger batch sizes!
     use_gradient_checkpointing = "unsloth", # True or "unsloth" for very long context
@@ -53,12 +53,11 @@ model = FastLanguageModel.get_peft_model(
 
 
 ## Preparing the dataset
-file_paths = ["Notes_ICD_0-5k.json", "Notes_ICD_5-10k.json", "Notes_ICD_15-20k.json", "Notes_ICD_25-30k.json", "Notes_ICD_30-50k.json", "Notes_ICD_50-70k.json", "Notes_ICD_70-100k.json"]
-dataset_name = "wangrice/MIMIC_III_NotesICD_100k"
-dataset = load_dataset(dataset_name, split="train", data_files=file_paths)
-dataset = dataset.map(formatting_func, batched=True, fn_kwargs={'tokenizer': tokenizer})
+dataset_name = "wangrice/MIMIC_III_NotesICD_100k_sepsis"
+dataset = load_dataset(dataset_name, split="train")
+dataset = dataset.map(formatting_func, batched=True, fn_kwargs={'tokenizer': tokenizer, 'field': "Sepsis_Diagnosis"})
 print(dataset[0:5]["training_text"])
-balanced_dataset = balance_data(dataset)
+balanced_dataset = balance_data(dataset, field="Sepsis_Diagnosis")
 
 # Split the dataset
 split_dataset = balanced_dataset.train_test_split(test_size=0.1)
@@ -71,35 +70,35 @@ print(f"Test size: {len(split_dataset['test'])}")
 # Setting training parameters
 training_arguments = TrainingArguments(
     output_dir="outputs",
-    num_train_epochs=1,
+    num_train_epochs=4,
     per_device_train_batch_size=4,
     gradient_accumulation_steps=8,
-    # optim="adamw_8bit",
+    optim="adamw_8bit",
     logging_steps=1,
-    learning_rate=1e-4,
-    weight_decay=0.01,
+    learning_rate=5e-5,
+    weight_decay=0.05,
     fp16 = not is_bfloat16_supported(),
     bf16 = is_bfloat16_supported(),
-    # warmup_steps = 50,
-    # lr_scheduler_type="cosine",
+    warmup_steps = 100,
+    lr_scheduler_type="cosine",
     save_strategy="epoch",
     eval_strategy='epoch',  # Evaluate at the end of each epoch
-    run_name="chat_template_train_1epo_cyclic_1e-4_32", 
+    run_name="sepsis_4epo_dropout_cos_5e-5_32_0.05", 
     load_best_model_at_end=True  # Load the best model at the end of training
 )
 
 # Customize optimizer and scheduler
-trainable_params = [param for name, param in model.named_parameters() if param.requires_grad]
-optimizer = AdamW(trainable_params, lr=1e-4, weight_decay=0.01)
+# trainable_params = [param for name, param in model.named_parameters() if param.requires_grad]
+# optimizer = AdamW(trainable_params, lr=1e-4, weight_decay=0.01)
 
-scheduler = CyclicLR(
-    optimizer, 
-    base_lr=1e-5,                      # minimum learning rate
-    max_lr=1e-4,                       # maximum learning rate
-    step_size_up=300,                 # number of training steps in the increasing half of a cycle
-    mode='triangular',                 # mode of the cycle ('triangular', 'triangular2', 'exp_range')
-    cycle_momentum=False               # whether to cycle the momentum (should be False for AdamW)
-)
+# scheduler = CyclicLR(
+#     optimizer, 
+#     base_lr=1e-5,                      # minimum learning rate
+#     max_lr=1e-4,                       # maximum learning rate
+#     step_size_up=300,                 # number of training steps in the increasing half of a cycle
+#     mode='triangular',                 # mode of the cycle ('triangular', 'triangular2', 'exp_range')
+#     cycle_momentum=False               # whether to cycle the momentum (should be False for AdamW)
+# )
 
 early_stopping_callback = EarlyStoppingCallback(early_stopping_patience=3)
 
@@ -113,7 +112,7 @@ trainer = SFTTrainer(
     dataset_num_proc = 4,
     packing = False, # Can make training 5x faster for short sequences.
     args = training_arguments,
-    optimizers=(optimizer, scheduler),
+    # optimizers=(optimizer, scheduler),
     callbacks=[early_stopping_callback],
 
 )
@@ -122,9 +121,7 @@ trainer_stats = trainer.train()
 
 print("\n ######## \nAfter training\n")
 
-# eval_results = trainer.evaluate()
-
 ## Save and push to Hub
 model.save_pretrained("finetuned_llama3")
 model.save_pretrained_merged("outputs", tokenizer, save_method = "merged_16bit",)
-model.push_to_hub("wangrice/ft_llama_chat_template", tokenizer, save_method = "lora", token = "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")
+model.push_to_hub("wangrice/ft_llama_sepsis_dropout", tokenizer, save_method = "lora", token = "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")

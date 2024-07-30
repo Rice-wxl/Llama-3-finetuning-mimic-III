@@ -1,0 +1,39 @@
+## SLURM PROLOG ###############################################################
+##    Job ID : 3848563
+##  Job Name : finetune_llama3
+##  Nodelist : gpu2002
+##      CPUs : 
+##  Mem/Node : 49152 MB
+## Directory : /oscar/home/xwang259/Llama-3-finetuning-mimic-III
+##   Job Started : Thu Jul 25 10:06:29 PM EDT 2024
+###############################################################################
+The token has not been saved to the git credentials helper. Pass `add_to_git_credential=True` in this function directly or `--add-to-git-credential` if using via `huggingface-cli` if you want to set the git credential as well.
+Token is valid (permission: read).
+Your token has been saved to /users/xwang259/.cache/huggingface/token
+Login successful
+Map:   0%|          | 0/43888 [00:00<?, ? examples/s]Map:  25%|██▌       | 11000/43888 [00:00<00:00, 97117.96 examples/s]Map:  48%|████▊     | 21000/43888 [00:00<00:00, 92457.86 examples/s]Map:  75%|███████▌  | 33000/43888 [00:00<00:00, 76716.04 examples/s]Map: 100%|██████████| 43888/43888 [00:00<00:00, 51420.41 examples/s]Map: 100%|██████████| 43888/43888 [00:00<00:00, 53800.16 examples/s]
+Uploading the dataset shards:   0%|          | 0/1 [00:00<?, ?it/s]
+Creating parquet from Arrow format:   0%|          | 0/44 [00:00<?, ?ba/s][A
+Creating parquet from Arrow format:   5%|▍         | 2/44 [00:00<00:02, 15.61ba/s][A
+Creating parquet from Arrow format:   9%|▉         | 4/44 [00:00<00:03, 12.26ba/s][A
+Creating parquet from Arrow format:  14%|█▎        | 6/44 [00:00<00:03, 10.43ba/s][A
+Creating parquet from Arrow format:  18%|█▊        | 8/44 [00:00<00:03, 10.44ba/s][A
+Creating parquet from Arrow format:  23%|██▎       | 10/44 [00:00<00:03, 10.30ba/s][A
+Creating parquet from Arrow format:  27%|██▋       | 12/44 [00:01<00:02, 11.81ba/s][A
+Creating parquet from Arrow format:  32%|███▏      | 14/44 [00:01<00:02, 12.85ba/s][A
+Creating parquet from Arrow format:  36%|███▋      | 16/44 [00:01<00:02, 13.60ba/s][A
+Creating parquet from Arrow format:  41%|████      | 18/44 [00:01<00:01, 13.95ba/s][A
+Creating parquet from Arrow format:  45%|████▌     | 20/44 [00:01<00:01, 13.98ba/s][A
+Creating parquet from Arrow format:  50%|█████     | 22/44 [00:01<00:01, 13.45ba/s][A
+Creating parquet from Arrow format:  55%|█████▍    | 24/44 [00:01<00:01, 13.18ba/s][A
+Creating parquet from Arrow format:  59%|█████▉    | 26/44 [00:02<00:01, 11.26ba/s][A
+Creating parquet from Arrow format:  64%|██████▎   | 28/44 [00:02<00:01,  9.67ba/s][A
+Creating parquet from Arrow format:  68%|██████▊   | 30/44 [00:02<00:01,  9.63ba/s][A
+Creating parquet from Arrow format:  73%|███████▎  | 32/44 [00:02<00:01,  9.82ba/s][A
+Creating parquet from Arrow format:  77%|███████▋  | 34/44 [00:03<00:01,  9.88ba/s][A
+Creating parquet from Arrow format:  82%|████████▏ | 36/44 [00:03<00:00, 10.12ba/s][A
+Creating parquet from Arrow format:  86%|████████▋ | 38/44 [00:03<00:00, 10.31ba/s][A
+Creating parquet from Arrow format:  91%|█████████ | 40/44 [00:03<00:00, 10.23ba/s][A
+Creating parquet from Arrow format:  95%|█████████▌| 42/44 [00:03<00:00, 10.14ba/s][A
+Creating parquet from Arrow format: 100%|██████████| 44/44 [00:04<00:00,  9.50ba/s][ACreating parquet from Arrow format: 100%|██████████| 44/44 [00:04<00:00, 10.90ba/s]
+Uploading the dataset shards: 100%|██████████| 1/1 [00:10<00:00, 10.34s/it]Uploading the dataset shards: 100%|██████████| 1/1 [00:10<00:00, 10.34s/it]

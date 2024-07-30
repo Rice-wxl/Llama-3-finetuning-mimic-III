@@ -5,8 +5,8 @@
 #SBATCH --nodes=1 # Number of nodes
 #SBATCH --mem=48G
 #SBATCH -J finetune_llama3
-#SBATCH -o chat_template_train_1epo_cyclic_1e-4_32.out
-#SBATCH -e chat_template_train_1epo_cyclic_1e-4_32.out
+#SBATCH -o embedding_generation.out
+#SBATCH -e embedding_generation.out
 
 module load cuda
 module load miniconda3/23.11.0s
@@ -14,4 +14,4 @@ source /oscar/runtime/software/external/miniconda3/23.11.0/etc/profile.d/conda.s
 
 conda activate llm_finetune
 
-python notes_icd.py 
+python generate_embedding.py 
